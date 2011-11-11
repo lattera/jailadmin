@@ -55,6 +55,26 @@ function main($args=array()) {
             }
             kill_jail($jail[$args[2]]);
             break;
+        case "list":
+            if (count($args) < 3) {
+                echo "USAGE: " . $args[0] . " list [bridges|running|jails]\n";
+                return;
+            }
+            switch ($args[2]) {
+                case "bridges":
+                    list_bridges();
+                    break;
+                case "running":
+                    list_running();
+                    break;
+                case "jails":
+                    list_jails();
+                    break;
+                default:
+                    echo "USAGE: " . $args[0] . " list [bridges|running|jails]\n";
+                    break;
+            }
+            break;
         default:
             echo "USAGE: " . $args[0] . " [start|stop] <jail>\n";
             echo "    No arguments will attempt to start all configured jails.\n";

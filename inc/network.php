@@ -37,4 +37,24 @@ function prep_bridge($bridgename) {
     return true;
 }
 
+function list_bridges() {
+    global $bridge;
+    global $jail;
+
+    foreach ($bridge as $b) {
+        foreach ($b as $key => $value) {
+            echo "[" . $b["name"] . "] $key => $value\n";
+        }
+
+        $assigned_jails = "";
+        foreach ($jail as $j)
+            if (array_key_exists("bridge", $j))
+                if (!strcmp($j["bridge"], $b["name"]))
+                    $assigned_jails .= ((strlen($assigned_jails) > 0) ? " " : "" ) . $j["name"];
+
+        if (strlen($assigned_jails) > 0)
+            echo "[" . $b["name"] . "] assigned jails: $assigned_jails\n";
+    }
+}
+
 ?>

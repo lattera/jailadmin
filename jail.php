@@ -3,9 +3,7 @@
 <?php
 
 include 'inc/enum.php';
-include 'inc/start.php';
-include 'inc/kill.php';
-include 'inc/misc.php';
+include 'inc/manage.php';
 include 'config.php';
 
 foreach ($jail as $j) {

@@ -1,5 +1,12 @@
 <?php
 
+function kill_jail($jail) {
+    exec("jail -r " . $jail["name"]);
+    exec("umount " . $jail["path"] . "/dev");
+    if ($jail["nettype"] == NetTypes::EPAIR)
+        exec("ifconfig " . $jail["inet"] . "a destroy");
+}
+
 function start_jail($jail) {
     if ($jail["nettype"] == NetTypes::EPAIR)
         exec("ifconfig " . $jail["inet"] . " create");
@@ -23,6 +30,11 @@ function start_jail($jail) {
     if (array_key_exists("services", $jail))
         foreach($jail["services"] as $service)
             exec("jexec " . $jail["name"] . " " . $service . " start");
+}
+
+function is_online($jail) {
+    $o = exec("mount | grep " . $jail["path"] . "/dev");
+    return strlen($o) > 0;
 }
 
 ?>

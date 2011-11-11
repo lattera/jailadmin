@@ -7,6 +7,7 @@ include 'inc/manage.php';
 include 'inc/network.php';
 include 'inc/misc.php';
 include 'inc/new.php';
+include 'inc/remove.php';
 include 'config.php';
 
 function prep_start($jail) {
@@ -82,6 +83,10 @@ function main($args=array()) {
             if ($j !== false)
                 if (prep_start($j))
                     start_jail($j);
+            break;
+        case "delete":
+            if (delete_jail($args[2]) == false)
+                echo "ERROR: Could not delete jail\n";
             break;
         default:
             echo "USAGE: " . $args[0] . " [start|stop] <jail>\n";

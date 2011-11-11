@@ -1,0 +1,6 @@
+jailadmin
+=========
+
+jailadmin helps manually bring online FreeBSD jails that are configured
+to use a vnet interface and a bridge. Additional types of jails might
+be supported later on.

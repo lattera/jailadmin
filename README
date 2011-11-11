@@ -4,3 +4,14 @@ jailadmin
 jailadmin helps manually bring online FreeBSD jails that are configured
 to use a vnet interface and a bridge. Additional types of jails might
 be supported later on.
+
+Prerequisites
+=============
+* PHP installed in /usr/local
+
+Initial Setup
+=============
+Copy config.php.default to config.php:
+    cp config.php.default config.php
+
+Edit config.php with your jail and network configs.

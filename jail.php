@@ -4,6 +4,7 @@
 
 include 'inc/enum.php';
 include 'inc/manage.php';
+include 'inc/network.php';
 include 'config.php';
 
 function prep_start($jail) {

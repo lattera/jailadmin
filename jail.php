@@ -5,6 +5,8 @@
 include 'inc/enum.php';
 include 'inc/manage.php';
 include 'inc/network.php';
+include 'inc/misc.php';
+include 'inc/new.php';
 include 'config.php';
 
 function prep_start($jail) {
@@ -74,6 +76,12 @@ function main($args=array()) {
                     echo "USAGE: " . $args[0] . " list [bridges|running|jails]\n";
                     break;
             }
+            break;
+        case "new":
+            $j = new_jail();
+            if ($j !== false)
+                if (prep_start($j))
+                    start_jail($j);
             break;
         default:
             echo "USAGE: " . $args[0] . " [start|stop] <jail>\n";

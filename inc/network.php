@@ -57,4 +57,24 @@ function list_bridges() {
     }
 }
 
+function ip_available($ip) {
+    global $jail;
+
+    foreach ($jail as $j)
+        if (!strcmp($j["ip"], $ip))
+            return false;
+
+    return true;
+}
+
+function inet_available($inet) {
+    global $jail;
+
+    foreach ($jail as $j)
+        if (!strcmp($j["inet"], $inet))
+            return false;
+
+    return true;
+}
+
 ?>

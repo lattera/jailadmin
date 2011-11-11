@@ -6,17 +6,60 @@ include 'inc/enum.php';
 include 'inc/manage.php';
 include 'config.php';
 
-foreach ($jail as $j) {
-    if (is_online($j)) {
+function prep_start($jail) {
+    global $config;
+
+    if (is_online($jail)) {
         if ($config["on_start"]["killexisting"] == false) {
-            echo "WARNING: " . $j["name"] . " is either still online or not fully killed. Please manually kill jail.\n";
-            continue;
+            echo "WARNING: " . $jail["name"] . " is either still online or not fully killed. Please manually kill jail.\n";
+            return false;
         }
 
-        kill_jail($j);
+        kill_jail($jail);
     }
 
-    start_jail($j);
+    return true;
 }
 
+function start_all_jails() {
+    global $jail;
+
+    foreach ($jail as $j) {
+        if (prep_start($j))
+            start_jail($j);
+    }
+}
+
+function main($args=array()) {
+    global $jail;
+
+    if (count($args) < 2) {
+        start_all_jails();
+        return;
+    }
+
+    switch ($args[1]) {
+        case "start":
+            if (array_key_exists($args[2], $jail) == false) {
+                echo "ERROR: Jail " . $args[2] . " is not configured.\n";
+                return;
+            }
+            if (prep_start($jail[$args[2]]))
+                start_jail($jail[$args[2]]);
+            break;
+        case "stop":
+            if (array_key_exists($args[2], $jail) == false) {
+                echo "ERROR: Jail " . $args[2] . " is not configured.\n";
+                return;
+            }
+            kill_jail($jail[$args[2]]);
+            break;
+        default:
+            echo "USAGE: " . $args[0] . " [start|stop] <jail>\n";
+            echo "    No arguments will attempt to start all configured jails.\n";
+            break;
+    }
+}
+
+main($argv);
 ?>

@@ -89,8 +89,11 @@ function main($args=array()) {
                 echo "ERROR: Could not delete jail\n";
             break;
         default:
-            echo "USAGE: " . $args[0] . " [start|stop] <jail>\n";
+            echo "USAGE: " . $args[0] . " [start|stop <jail>] [new] [delete <jail>] [list [bridges|running|jails]]\n";
             echo "    No arguments will attempt to start all configured jails.\n";
+            echo "    Creating a jail will autostart it.\n";
+            echo "    Creating a jail through this utility enforces usage of ZFS datasets.\n";
+            echo "Created by Shawn Webb <shwebb@wayfair.com> for Wayfair.\n";
             break;
     }
 }

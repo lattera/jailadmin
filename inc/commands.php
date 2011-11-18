@@ -147,8 +147,22 @@ class ListCommand extends Command {
     }
 
     public function Run($args) {
-        if (count($args) >= 2 && !strcmp($args[2], "help"))
-            return $this->Help();
+        switch ($args[2]) {
+            case "bridges":
+                list_bridges();
+                break;
+            case "running":
+                list_running();
+                break;
+            case "jails":
+                list_jails();
+                break;
+            case "help":
+                return $this->Help();
+            default:
+                $this->Help();
+                return false;
+        }
 
         return true;
     }
@@ -185,22 +199,16 @@ class StartCommand extends Command {
             return $this->Help();
 
         if (!strcmp($args[2], "[all]")) {
-            foreach ($jail as $j)
-                if (prep_start($j))
-                    start_jail($j);
+            foreach ($jail as $j) {
+                $o = new Jail($j["name"]);
+                $o->Start();
+            }
 
             return true;
         }
 
-        if (array_key_exists($args[2], $jail) == false) {
-            echo "Jail " . $args[2] . " not configured!\n";
-            return false;
-        }
-
-        if (StartCommand::prep_start($jail[$args[2]]))
-            start_jail($jail[$args[2]]);
-
-        return true;
+        $o = new Jail($args[2]);
+        return $o->Start();
     }
 
     public function Test($args) {

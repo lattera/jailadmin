@@ -80,6 +80,7 @@ function new_jail() {
     fwrite($fp, "\$jail[\"$name\"][\"path\"] = \"$path\";\n");
     fwrite($fp, "\$jail[\"$name\"][\"ip\"] = \"$ip\";\n");
     fwrite($fp, "\$jail[\"$name\"][\"route\"] = \"$route\";\n");
+    fwrite($fp, "\$jail[\"$name\"][\"dataset\"] = \"$dataset\";\n");
 
     $service = "";
     if (count($services) > 0)
@@ -101,6 +102,8 @@ function new_jail() {
     $j["path"] = $path;
     $j["ip"] = $ip;
     $j["route"] = $route;
+    $j["dataset"] = $dataset;
+
     if (count($services) > 0)
         $j["services"] = $services;
 

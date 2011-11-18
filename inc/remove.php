@@ -35,6 +35,9 @@ function delete_jail($name) {
             $prevblank = true;
     }
 
+    if (array_key_exists("dataset", $jail[$name]))
+        exec("zfs destroy -r " . $jail[$name]["dataset"]);
+
     exec("rm config.php.tmp");
 
     return true;

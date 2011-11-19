@@ -3,7 +3,6 @@
 <?php
 
 include 'inc/enum.php';
-include 'inc/manage.php';
 include 'inc/misc.php';
 include 'config.php';
 include 'classes/bridge.php';

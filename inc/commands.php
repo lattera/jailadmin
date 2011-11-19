@@ -86,6 +86,11 @@ class NewCommand extends Command {
     }
 
     public function Run($args) {
+        $bridges = Bridge::findAll();
+        $bridgenames = "";
+        foreach ($bridges as $bridge)
+            $bridgenames .= ((strlen($bridgenames) > 0) ? ", " : "") . $bridge->getProperty("name");
+
         echo "Name: ";
         $name = read_stdin();
 
@@ -104,7 +109,7 @@ class NewCommand extends Command {
         echo "Network Interface: ";
         $inet = read_stdin();
 
-        echo "Bridge []: ";
+        echo "Bridge [$bridgenames]: ";
         $bridgename = read_stdin();
 
         echo "IP: ";
@@ -161,13 +166,13 @@ class NewCommand extends Command {
                     $found = true;
 
             if ($found == false)
-                throw new Exception("$bridge does not exist");
+                throw new Exception("bridge $bridge does not exist");
         }
 
         $j->Persist();
 
         exec("zfs clone $template $dataset");
-        
+
         $fp = fopen($path . "/etc/ssh/sshd_config", "a");
         if ($fp !== false) {
             fwrite($fp, "ListenAddress $ip\n");

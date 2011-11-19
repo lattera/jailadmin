@@ -169,14 +169,19 @@ class Jail {
         return true;
     }
 
+    public function IsPersisted() {
+        $o = exec("grep 'jail\\[\"" . $this->name . "' config.php");
+        return strlen($o) > 0;
+    }
+
     public function Persist() {
         /* Ensure we're dealing only with what we have */
-        $this->Delete();
+        if ($this->IsPersisted())
+            $this->Delete();
 
         $fp = fopen("config.php", "a");
 
         fwrite($fp, "\$jail[\"" . $this->name . "\"][\"name\"] = \"" . $this->name . "\";\n");
-        fwrite($fp, $this->nettype);
         fwrite($fp, "\$jail[\"" . $this->name . "\"][\"inet\"] = \"" . $this->inet . "\";\n");
         if (strlen($this->bridge) > 0)
             fwrite($fp, "\$jail[\"" . $this->name . "\"][\"bridge\"] = \"" . $this->bridge . "\";\n");

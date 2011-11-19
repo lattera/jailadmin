@@ -4,99 +4,22 @@
 
 include 'inc/enum.php';
 include 'inc/manage.php';
-include 'inc/network.php';
 include 'inc/misc.php';
-include 'inc/new.php';
-include 'inc/remove.php';
 include 'config.php';
+include 'classes/bridge.php';
+include 'classes/jail.php';
+include 'inc/commands.php';
 
-function prep_start($jail) {
-    global $config;
+$count = count($argv)-1;
 
-    if (is_online($jail)) {
-        if ($config["on_start"]["killexisting"] == false) {
-            echo "WARNING: " . $jail["name"] . " is either still online or not fully killed. Please manually kill jail.\n";
-            return false;
+foreach ($commands as $command) {
+    if ($count >= $command->getProperty("minArgs")) {
+        if ($command->Test($argv)) {
+            if ($command->Run($argv) == false) {
+                echo "Command failed\n";
+            }
         }
-
-        kill_jail($jail);
-    }
-
-    return true;
-}
-
-function start_all_jails() {
-    global $jail;
-
-    foreach ($jail as $j) {
-        if (prep_start($j))
-            start_jail($j);
     }
 }
 
-function main($args=array()) {
-    global $jail;
-
-    if (count($args) < 2) {
-        start_all_jails();
-        return;
-    }
-
-    switch ($args[1]) {
-        case "start":
-            if (array_key_exists($args[2], $jail) == false) {
-                echo "ERROR: Jail " . $args[2] . " is not configured.\n";
-                return;
-            }
-            if (prep_start($jail[$args[2]]))
-                start_jail($jail[$args[2]]);
-            break;
-        case "stop":
-            if (array_key_exists($args[2], $jail) == false) {
-                echo "ERROR: Jail " . $args[2] . " is not configured.\n";
-                return;
-            }
-            kill_jail($jail[$args[2]]);
-            break;
-        case "list":
-            if (count($args) < 3) {
-                echo "USAGE: " . $args[0] . " list [bridges|running|jails]\n";
-                return;
-            }
-            switch ($args[2]) {
-                case "bridges":
-                    list_bridges();
-                    break;
-                case "running":
-                    list_running();
-                    break;
-                case "jails":
-                    list_jails();
-                    break;
-                default:
-                    echo "USAGE: " . $args[0] . " list [bridges|running|jails]\n";
-                    break;
-            }
-            break;
-        case "new":
-            $j = new_jail();
-            if ($j !== false)
-                if (prep_start($j))
-                    start_jail($j);
-            break;
-        case "delete":
-            if (delete_jail($args[2]) == false)
-                echo "ERROR: Could not delete jail\n";
-            break;
-        default:
-            echo "USAGE: " . $args[0] . " [start|stop <jail>] [new] [delete <jail>] [list [bridges|running|jails]]\n";
-            echo "    No arguments will attempt to start all configured jails.\n";
-            echo "    Creating a jail will autostart it.\n";
-            echo "    Creating a jail through this utility enforces usage of ZFS datasets.\n";
-            echo "Created by Shawn Webb <shwebb@wayfair.com> for Wayfair.\n";
-            break;
-    }
-}
-
-main($argv);
 ?>

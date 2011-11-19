@@ -21,7 +21,7 @@ class Bridge {
 
         $bridges = array();
         foreach ($bridge as $b)
-            array_push($b, new Bridge($b["name"]));
+            array_push($bridges, new Bridge($b["name"]));
 
         return $bridges;
     }
@@ -56,6 +56,8 @@ class Bridge {
                 return $this->inet;
             case "name":
                 return $this->name;
+            case "ip":
+                return $this->ip;
             default:
                 throw new Exception("Bridge->getProperty(): unknown property: $name");
         }

@@ -47,8 +47,6 @@ class Jail {
     }
 
     public function Start($force=true) {
-        global $bridge;
-
         if ($this->IsOnline()) {
             if ($force == false) {
                 echo "WARNING: $jail is already online. Please manually stop jail.\n";
@@ -63,15 +61,11 @@ class Jail {
         }
 
         if (strlen($this->bridge) > 0) {
-            if (prep_bridge($this->bridge) == false) {
-                if ($this->nettype == NetTypes::EPAIR)
-                    exec("ifconfig " . $this->inet . "a destroy");
-
-                return false;
-            }
+            $bridge = new Bridge($this->bridge);
+            $bridge->Start();
 
             if ($this->nettype == NetTypes::EPAIR)
-                exec("ifconfig " . $bridge[$this->bridge]["inet"] . " addm " . $this->inet . "a");
+                exec("ifconfig " . $bridge->getProperty("inet") . " addm " . $this->inet . "a");
         }
 
         if ($this->nettype == NetTypes::EPAIR)
@@ -104,6 +98,82 @@ class Jail {
             exec("ifconfig " . $this->inet . "a destroy");
 
         return true;
+    }
+
+    public function Delete() {
+        exec("cp config.php config.php.tmp");
+
+        $fp = fopen("config.php.tmp", "r");
+        if ($fp === false)
+            return false;
+
+        $lines = array();
+        while (!feof($fp)) {
+            $s = rtrim(fgets($fp));
+            if (strstr($s, "jail[\"" . $this->name) === false)
+                array_push($lines, $s);
+        }
+
+        fclose($fp);
+        $fp = fopen("config.php", "w");
+        if ($fp === false)
+            return false;
+
+        $prevblank = false;
+        foreach ($lines as $line) {
+            if ($prevblank == true && strlen($line) == 0)
+                continue;
+
+            fwrite($fp, $line . "\n");
+
+            if (strlen($line) == 0)
+                $prevblank = true;
+        }
+
+        if (strlen($this->dataset) > 0)
+            exec("zfs destroy -r " . $this->dataset);
+
+        exec("rm config.php.tmp");
+
+        return true;
+    }
+
+    public function Persist() {
+        /* Ensure we're dealing only with what we have */
+        $this->Delete();
+
+        $fp = fopen("config.php", "a");
+
+        fwrite($fp, "\$jail[\"" . $this->name . "\"][\"name\"] = \"" . $this->name . "\";\n");
+        fwrite($fp, $nettype);
+        fwrite($fp, "\$jail[\"" . $this->name . "\"][\"inet\"] = \"" . $this->inet . "\";\n");
+        if (strlen($bridgename) > 0)
+            fwrite($fp, "\$jail[\"" . $this->name . "\"][\"bridge\"] = \"" . $this->bridge . "\";\n");
+        fwrite($fp, "\$jail[\"" . $this->name . "\"][\"path\"] = \"" . $this->path . "\";\n");
+        fwrite($fp, "\$jail[\"" . $this->name . "\"][\"ip\"] = \"" . $this->ip . "\";\n");
+        fwrite($fp, "\$jail[\"" . $this->name . "\"][\"route\"] = \"" . $this->route . "\";\n");
+
+        if (strlen($this->dataset) > 0)
+            fwrite($fp, "\$jail[\"" . $this->name . "\"][\"dataset\"] = \"" . $this->dataset . "\";\n");
+
+        $service = "";
+        if (count($this->services) > 0)
+            foreach ($this->services as $s)
+                $service .= ((strlen($service) > 0) ? ", " : "") . "\"$s\"";
+
+        if (strlen($service) > 0)
+            fwrite($fp, "\$jail[\"" . $this->name . "\"][\"services\"] = array($service);\n");
+
+        switch ($this->nettype) {
+            case NetTypes::EPAIR:
+                fwrite($fp, "\$jail[\"" . $this->name . "\"][\"nettype\"] = NetTypes::EPAIR;\n");
+                break;
+            default:
+                throw new Exception("Jail[" . $this->name . "]->Persist: Unkown nettype\n");
+        }
+
+        fwrite($fp, "\n");
+        fclose($fp);
     }
 }
 

@@ -257,18 +257,16 @@ class StopCommand extends Command {
             return $this->Help();
 
         if (!strcmp($args[2], "[all]")) {
-            foreach ($jail as $j)
-                kill_jail($j);
+            foreach ($jail as $j) {
+                $o = new Jail($j["name"]);
+                $o->Stop();
+            }
 
             return true;
         }
 
-        if (array_key_exists($args[2], $jail) == false) {
-            echo "ERROR: Jail " . $args[2] . " is not configured\n";
-            return false;
-        }
-
-        kill_jail($jail[$args[2]]);
+        $o = new Jail($args[2]);
+        $o->Stop();
 
         return true;
     }

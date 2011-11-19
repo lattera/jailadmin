@@ -9,6 +9,7 @@ include 'inc/misc.php';
 include 'inc/new.php';
 include 'inc/remove.php';
 include 'config.php';
+include 'classes/jail.php';
 include 'inc/commands.php';
 
 $count = count($argv)-1;

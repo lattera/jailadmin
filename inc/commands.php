@@ -86,6 +86,11 @@ class NewCommand extends Command {
     }
 
     public function Run($args) {
+        $bridges = Bridge::findAll();
+        $bridgenames = "";
+        foreach ($bridges as $bridge)
+            $bridgenames .= ((strlen($bridgenames) > 0) ? ", " : "") . $bridge->getProperty("name");
+
         echo "Name: ";
         $name = read_stdin();
 
@@ -104,7 +109,7 @@ class NewCommand extends Command {
         echo "Network Interface: ";
         $inet = read_stdin();
 
-        echo "Bridge []: ";
+        echo "Bridge [$bridgenames]: ";
         $bridgename = read_stdin();
 
         echo "IP: ";
@@ -161,13 +166,13 @@ class NewCommand extends Command {
                     $found = true;
 
             if ($found == false)
-                throw new Exception("$bridge does not exist");
+                throw new Exception("bridge $bridge does not exist");
         }
 
         $j->Persist();
 
         exec("zfs clone $template $dataset");
-        
+
         $fp = fopen($path . "/etc/ssh/sshd_config", "a");
         if ($fp !== false) {
             fwrite($fp, "ListenAddress $ip\n");
@@ -248,17 +253,55 @@ class ListCommand extends Command {
     }
 
     public function Run($args) {
-        echo "To be completed. Sorry!\n";
-        return true;
+        $bridges = Bridge::findAll();
+        $jails = Jail::findAll();
+
         switch ($args[2]) {
             case "bridges":
-                list_bridges();
+                foreach ($bridges as $bridge) {
+                    echo "[" . $bridge->getProperty("name") . "] ip => " . $bridge->getProperty("ip") . "\n";
+                    echo "[" . $bridge->getProperty("name") . "] inet => " . $bridge->getProperty("inet") . "\n";
+                    $assigned = "";
+                    foreach ($jails as $jail)
+                        if (!strcmp($jail->getProperty("bridge"), $bridge->getProperty("name")))
+                            $assigned .= ((strlen($assigned) > 0) ? ", " : "") . $jail->getProperty("name");
+
+                    if (strlen($assigned) > 0)
+                        echo "[" . $bridge->getProperty("name") . "] jails => " . $assigned . "\n";
+                }
                 break;
             case "running":
-                list_running();
+                $running = "";
+                foreach ($jails as $jail)
+                    if ($jail->IsOnline())
+                        $running .= ((strlen($running) > 0) ? ", " : "") . $jail->getProperty("name");
+
+                echo "[$running] is online.\n";
+
                 break;
             case "jails":
-                list_jails();
+                foreach ($jails as $jail) {
+                    echo "[" . $jail->getProperty("name") . "] inet => " . $jail->getProperty("inet") . "\n";
+                    echo "[" . $jail->getProperty("name") . "] ip => " . $jail->getProperty("ip") . "\n";
+                    echo "[" . $jail->getProperty("name") . "] bridge => " . $jail->getProperty("bridge") . "\n";
+                    echo "[" . $jail->getProperty("name") . "] path => " . $jail->getProperty("path") . "\n";
+                    echo "[" . $jail->getProperty("name") . "] route => " . $jail->getProperty("route") . "\n";
+                    echo "[" . $jail->getProperty("name") . "] dataset => " . $jail->getProperty("dataset") . "\n";
+
+                    switch ($jail->getProperty("nettype")) {
+                        case NetTypes::EPAIR:
+                            echo "[" . $jail->getProperty("name") . "] nettype => EPAIR\n";
+                            break;
+                        default:
+                            throw new Exception("Unknown NetType for jail " . $jail->getProperty("name"));
+                    }
+
+                    $services = "";
+                    foreach ($jail->getProperty("services") as $service)
+                        $services .= ((strlen($services) > 0) ? ", " : "") . $service;
+
+                    echo "[" . $jail->getProperty("name") . "] services => [$services]\n";
+                }
                 break;
             case "help":
                 return $this->Help();

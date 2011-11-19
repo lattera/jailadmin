@@ -248,6 +248,8 @@ class ListCommand extends Command {
     }
 
     public function Run($args) {
+        echo "To be completed. Sorry!\n";
+        return true;
         switch ($args[2]) {
             case "bridges":
                 list_bridges();

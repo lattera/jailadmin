@@ -86,7 +86,101 @@ class NewCommand extends Command {
     }
 
     public function Run($args) {
-        return true;
+        echo "Name: ";
+        $name = read_stdin();
+
+        echo "ZFS Template: ";
+        $template = read_stdin();
+
+        echo "New ZFS Dataset: ";
+        $dataset = read_stdin();
+
+        echo "Path: ";
+        $path = read_stdin();
+
+        echo "Network Type [EPAIR]: ";
+        $nettype = read_stdin();
+
+        echo "Network Interface: ";
+        $inet = read_stdin();
+
+        echo "Bridge []: ";
+        $bridgename = read_stdin();
+
+        echo "IP: ";
+        $ip = read_stdin();
+
+        echo "Default Route: ";
+        $route = read_stdin();
+
+        $service = "";
+        $services = array();
+        do {
+            echo "Service (enter blank line when finished): ";
+            $service = read_stdin();
+            if (strlen($service) > 0)
+                array_push($services, $service);
+        } while (strlen($service) > 0);
+
+        $j = new Jail("");
+
+        $j->setProperty("name", $name);
+        $j->setProperty("dataset", $dataset);
+        $j->setProperty("path", $path);
+        $j->setProperty("inet", $inet);
+        $j->setProperty("bridge", $bridgename);
+        $j->setProperty("ip", $ip);
+        $j->setProperty("route", $route);
+
+        switch ($nettype) {
+            case "":
+            case "EPAIR":
+                $nettype = NetTypes::EPAIR;
+                break;
+            default:
+                throw new Exception("Unknown Network Type: $nettype");
+        }
+
+        $j->setProperty("nettype", $nettype);
+        if (count($services) > 0)
+            $j->setProperty("services", $services);
+
+        $jails = Jail::findAll();
+        foreach ($jails as $jail) {
+            if (!strcmp($jail->getProperty("ip"), $ip))
+                throw new Exception("$ip already taken");
+            if (!strcmp($jail->getProperty("inet"), $inet))
+                throw new Exception("$inet already taken");
+        }
+
+        if (strlen($bridgename) > 0) {
+            $bridges = Bridge::findAll();
+            $found = false;
+            foreach ($bridges as $b)
+                if (!strcmp($b->getProperty("name"), $bridgename))
+                    $found = true;
+
+            if ($found == false)
+                throw new Exception("$bridge does not exist");
+        }
+
+        $j->Persist();
+
+        exec("zfs clone $template $dataset");
+        
+        $fp = fopen($path . "/etc/ssh/sshd_config", "a");
+        if ($fp !== false) {
+            fwrite($fp, "ListenAddress $ip\n");
+            fclose($fp);
+        }
+
+        $fp = fopen($path . "/etc/rc.conf", "a");
+        if ($fp !== false) {
+            fwrite($fp, "sshd_enable=\"YES\"\n");
+            fclose($fp);
+        }
+
+        return $j->Start();
     }
 
     public function Test($args) {
@@ -117,6 +211,13 @@ class DeleteCommand extends Command {
     }
 
     public function Run($args) {
+        $j = new Jail($args[2]);
+
+        if ($j->IsOnline())
+            $j->Stop();
+
+        $j->Delete();
+
         return true;
     }
 

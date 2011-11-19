@@ -11,8 +11,21 @@ class Jail {
     private $dataset;
     private $services;
 
-    function __construct($name) {
+    function __construct($name="") {
         global $jail;
+
+        if (strlen($name) == 0) {
+            $this->name = "";
+            $this->nettype = 0;
+            $this->inet = "";
+            $this->bridge = "";
+            $this->path = "";
+            $this->ip = "";
+            $this->route = "";
+            $this->dataset = "";
+            $this->services = array();
+            return;
+        }
 
         if (array_key_exists($name, $jail) == false)
             throw new Exception("Jail $jail is not configured!\n");
@@ -36,6 +49,24 @@ class Jail {
 
         if (array_key_exists("bridge", $jail[$name]))
             $this->bridge = $jail[$name]["bridge"];
+    }
+
+    public static function findAll() {
+        global $jail;
+
+        $jails = array();
+        foreach ($jail as $j)
+            array_push($jails, new Jail($j["name"]));
+
+        return $jails;
+    }
+
+    public function getProperty($name) {
+        return $this->$name;
+    }
+
+    public function setProperty($name, $value) {
+        $this->$name = $value;
     }
 
     public function IsOnline() {
@@ -145,9 +176,9 @@ class Jail {
         $fp = fopen("config.php", "a");
 
         fwrite($fp, "\$jail[\"" . $this->name . "\"][\"name\"] = \"" . $this->name . "\";\n");
-        fwrite($fp, $nettype);
+        fwrite($fp, $this->nettype);
         fwrite($fp, "\$jail[\"" . $this->name . "\"][\"inet\"] = \"" . $this->inet . "\";\n");
-        if (strlen($bridgename) > 0)
+        if (strlen($this->bridge) > 0)
             fwrite($fp, "\$jail[\"" . $this->name . "\"][\"bridge\"] = \"" . $this->bridge . "\";\n");
         fwrite($fp, "\$jail[\"" . $this->name . "\"][\"path\"] = \"" . $this->path . "\";\n");
         fwrite($fp, "\$jail[\"" . $this->name . "\"][\"ip\"] = \"" . $this->ip . "\";\n");

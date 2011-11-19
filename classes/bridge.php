@@ -16,6 +16,16 @@ class Bridge {
         $this->ip = $bridge[$name]["ip"];
     }
 
+    public static function findAll() {
+        global $bridge;
+
+        $bridges = array();
+        foreach ($bridge as $b)
+            array_push($b, new Bridge($b["name"]));
+
+        return $bridges;
+    }
+
     public function IsOnline() {
         $o = exec("ifconfig " . $this->inet . " | grep -v \"does not exist\"");
         return strlen($o) > 0;

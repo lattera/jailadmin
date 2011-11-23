@@ -1,0 +1,8 @@
+<?php
+
+$dbdriver = 'mysql';
+$dbdatabase = 'jails';
+$dbuser = 'jail';
+$dbpassword = 'j41l5!';
+
+?>

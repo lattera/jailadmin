@@ -1,0 +1,3 @@
+[submodule "flourish"]
+	path = flourish
+	url = https://github.com/wbond/flourish.git

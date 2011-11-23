@@ -345,16 +345,19 @@ class StartCommand extends Command {
             return $this->Help();
 
         if (!strcmp($args[2], "[all]")) {
-            foreach ($jail as $j) {
-                $o = new Jail($j["name"]);
-                $o->Start();
-            }
+            $jails = Jail::findAll();
+
+            foreach ($jails as $jail)
+                $jail->Start();
 
             return true;
         }
 
-        $o = new Jail($args[2]);
-        return $o->Start();
+        $jail = Jail::findByName($args[2]);
+        if ($jail)
+            $jail->Start();
+
+        return true;
     }
 
     public function Test($args) {

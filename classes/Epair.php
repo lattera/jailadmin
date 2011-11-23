@@ -56,7 +56,7 @@ class Epair extends fActiveRecord {
         return true;
     }
 
-    public function associatedBridges() {
+    public function associatedBridge() {
         return $this->bridge;
     }
 }

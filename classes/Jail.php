@@ -45,6 +45,10 @@ class Jail extends fActiveRecord {
         return true;
     }
 
+    public function associatedEpairs() {
+        return $this->network;
+    }
+
     protected static function prepData($jails) {
         foreach ($jails as $jail)
             $jail->associateEpairs();
@@ -54,6 +58,21 @@ class Jail extends fActiveRecord {
 
     protected function associateEpairs() {
         $this->network = Epair::findAll($this->getJailId());
+    }
+
+    public function View() {
+        echo "[" . $this->getJailName() . "] Online => " . ($this->IsOnline() ? "True" : "False") . "\n";
+        echo "[" . $this->getJailName() . "] Path => " . $this->getPath() . "\n";
+        echo "[" . $this->getJailName() . "] Dataset => " . $this->getDataset() . "\n";
+        echo "[" . $this->getJailName() . "] Default Route => " . $this->getDefaultRoute() . "\n";
+        foreach ($this->network as $n) {
+            $n_name = $n->getEpairDevice();
+            $b_name = $n->associatedBridge()->getBridgeDevice();
+
+            echo "[" . $this->getJailName() . "][" . $n_name . "] IP => " . $n->getIp() . "\n";
+            echo "[" . $this->getJailName() . "][" . $n_name . "][" . $b_name . "] Name => " . $n->associatedBridge()->getBridgeName() . "\n";
+            echo "[" . $this->getJailName() . "][" . $n_name . "][" . $b_name . "] IP => " . $n->associatedBridge()->getBridgeIp() . "\n";
+        }
     }
 }
 ?>

@@ -23,6 +23,10 @@ function jail_command() {
                 return;
             case "status":
                 break;
+            case "viewall":
+                foreach (Jail::findAll() as $jail)
+                    $jail->View();
+                break;
             default:
                 system($cmd);
                 break;
@@ -56,10 +60,34 @@ function config_jail() {
                 $jail->store();
                 break;
             case "set":
+                if (count($parsed) != 3)
+                    break;
+
+                switch ($parsed[1]) {
+                    case "name":
+                        $jail->setName($parsed[2]);
+                        break;
+                    case "path":
+                        $jail-setPath($parsed[2]);
+                        break;
+                    case "dataset":
+                        $jail->setDataset($parsed[2]);
+                        break;
+                }
+
                 break;
             case "view":
+                $jail->View();
                 break;
             case "help":
+                echo "Available commands: back, commit, set, view, network\n";
+                echo "set - set jail parameters\n";
+                echo "      name\n";
+                echo "      path\n";
+                echo "      dataset\n";
+                break;
+            default:
+                system($cmd);
                 break;
         }
     } while (true);

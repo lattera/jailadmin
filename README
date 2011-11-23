@@ -8,10 +8,17 @@ be supported later on.
 Prerequisites
 =============
 * PHP installed in /usr/local
+* MySQL Server
 
 Initial Setup
 =============
-Copy config.php.default to config.php:
-    cp config.php.default config.php
+1) Initialize flourishlib:
+        git submodule init && git submodule update
 
-Edit config.php with your jail and network configs.
+2) Copy db.php.default to db.php:
+        cp db.php.default db.php
+
+3) Edit db.php with your db settings
+
+4) Install the db schema:
+    mysql [username/password/db] < schema.sql

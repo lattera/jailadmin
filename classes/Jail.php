@@ -8,7 +8,7 @@ class Jail extends fActiveRecord {
     }
 
     public static function findByName($name) {
-        return Jail::prepData(fRecordSet::build(__CLASS__, array("name=" => $name)));
+        return Jail::prepData(fRecordSet::build(__CLASS__, array("jail_name=" => $name)));
     }
 
     public function IsOnline() {

@@ -87,9 +87,11 @@ class NewCommand extends Command {
 
     public function Run($args) {
         $bridges = Bridge::findAll();
-        $bridgenames = "";
+        $bridgenames = "[";
         foreach ($bridges as $bridge)
-            $bridgenames .= ((strlen($bridgenames) > 0) ? ", " : "") . $bridge->getProperty("name");
+            $bridgenames .= ((strlen($bridgenames) > 0) ? ", " : "") . "(" . $bridge->getBridgeName() . " => " . $bridge->getBridgeIp() . ")";
+
+        $bridgenames .= "]";
 
         echo "Name: ";
         $name = read_stdin();
@@ -103,17 +105,17 @@ class NewCommand extends Command {
         echo "Path: ";
         $path = read_stdin();
 
-        echo "Network Type [EPAIR]: ";
-        $nettype = read_stdin();
+        echo "Available bridges: $bridgenames\n";
 
-        echo "Network Interface: ";
-        $inet = read_stdin();
+        $ips = array();
+        do {
+            echo "Bridge/Device/IP (eg. mainbridge/epair0/192.168.0.2) (enter blank line when finished): ";
+            $ip = read_stdin();
 
-        echo "Bridge [$bridgenames]: ";
-        $bridgename = read_stdin();
-
-        echo "IP: ";
-        $ip = read_stdin();
+            $combo = explode("/", $ip);
+            if (count($combo) == 3)
+                array_push($ips, $combo);
+        } while(strlen($ip) > 0 || count($ips) == 0);
 
         echo "Default Route: ";
         $route = read_stdin();
@@ -127,7 +129,7 @@ class NewCommand extends Command {
                 array_push($services, $service);
         } while (strlen($service) > 0);
 
-        $j = new Jail("");
+        $j = new Jail;
 
         $j->setProperty("name", $name);
         $j->setProperty("dataset", $dataset);

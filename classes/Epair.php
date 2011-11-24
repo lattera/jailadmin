@@ -7,6 +7,10 @@ class Epair extends fActiveRecord {
         return Epair::prepData(fRecordSet::build(__CLASS__, array("jail_id=" => $jail_id)));
     }
 
+    public static function findAllForUniqueCheck() {
+        return Epair::prepData(fRecordSet::build(__CLASS__));
+    }
+
     protected static function prepData($epairs) {
         foreach ($epairs as $epair)
             $epair->associateBridge();
@@ -14,8 +18,11 @@ class Epair extends fActiveRecord {
         return $epairs;
     }
 
-    protected function associateBridge() {
-        $this->bridge = Bridge::findByBridgeId($this->getBridgeId());
+    public function associateBridge($bridge=null) {
+        if ($bridge != null)
+            $this->bridge = $bridge;
+        else
+            $this->bridge = Bridge::findByBridgeId($this->getBridgeId());
     }
 
     public function IsOnline() {
@@ -58,6 +65,18 @@ class Epair extends fActiveRecord {
 
     public function associatedBridge() {
         return $this->bridge;
+    }
+
+    public function Persist() {
+        $this->setBridgeId($this->bridge->getBridgeId());
+        $this->setEpairId($this->store()->getEpairId());
+    }
+
+    public function Remove() {
+        if ($this->IsOnline())
+            $this->BringOffline();
+
+        $this->delete();
     }
 }
 

@@ -8,7 +8,7 @@ class Jail extends fActiveRecord {
     }
 
     public static function findByName($name) {
-        return Jail::prepData(fRecordSet::build(__CLASS__, array("jail_name=" => $name)));
+        return Jail::prepData(fRecordSet::build(__CLASS__, array("jail_name=" => $name)), true);
     }
 
     public function IsOnline() {
@@ -49,15 +49,21 @@ class Jail extends fActiveRecord {
         return $this->network;
     }
 
-    protected static function prepData($jails) {
+    protected static function prepData($jails, $single=false) {
         foreach ($jails as $jail)
             $jail->associateEpairs();
+
+        if ($single)
+            return ($jails->count() == 0) ? false : $jails->getRecord(0);
 
         return $jails;
     }
 
-    protected function associateEpairs() {
-        $this->network = Epair::findAll($this->getJailId());
+    public function associateEpairs($epairs=array()) {
+        if (count($epairs) == 0)
+            $this->network = Epair::findAll($this->getJailId());
+        else
+            $this->network = $epairs;
     }
 
     public function View() {
@@ -73,6 +79,25 @@ class Jail extends fActiveRecord {
             echo "[" . $this->getJailName() . "][" . $n_name . "][" . $b_name . "] Name => " . $n->associatedBridge()->getBridgeName() . "\n";
             echo "[" . $this->getJailName() . "][" . $n_name . "][" . $b_name . "] IP => " . $n->associatedBridge()->getBridgeIp() . "\n";
         }
+    }
+
+    public function Persist() {
+        $this->setJailId($this->store()->getJailId());
+        foreach ($this->network as $n) {
+            $n->setJailId($this->getJailId());
+            $n->Persist();
+        }
+    }
+
+    public function Remove() {
+        if ($this->IsOnline())
+            $this->Stop();
+
+        foreach ($this->network as $n)
+            $n->Remove();
+
+        exec("zfs destroy -r " . $this->getDataset());
+        $this->delete();
     }
 }
 ?>

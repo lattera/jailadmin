@@ -13,6 +13,14 @@ class Bridge extends fActiveRecord {
         return $bridges->getRecord(0);
     }
 
+    public static function findByName($name) {
+        $bridges = fRecordSet::build(__CLASS__, array("bridge_name=" => $name));
+        if ($bridges->count() == 0)
+            return false;
+
+        return $bridges->getRecord(0);
+    }
+
     public function IsOnline() {
         $o = exec("ifconfig " . $this->getBridgeDevice() . " 2>&1 | grep -v \"does not exist\"");
         return strlen($o) > 0;

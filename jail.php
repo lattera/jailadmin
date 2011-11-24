@@ -4,6 +4,7 @@
 
 include 'inc/misc.php';
 include 'inc/interactive/jail.php';
+include 'inc/interactive/bridge.php';
 include 'init.php';
 
 function interactive() {
@@ -22,6 +23,7 @@ function interactive() {
                 jail_command();
                 break;
             case "bridge":
+                bridge_command();
                 break;
             default:
                 system($cmd);

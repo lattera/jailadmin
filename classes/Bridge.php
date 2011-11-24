@@ -1,6 +1,8 @@
 <?php
 
 class Bridge extends fActiveRecord {
+    private $jails = null; /* Lazy loaded for Bridge::relatedJails */
+
     public static function findAll() {
         return fRecordSet::build(__CLASS__);
     }
@@ -34,5 +36,40 @@ class Bridge extends fActiveRecord {
         exec("ifconfig " . $this->getBridgeDevice() . " " . $this->getBridgeIp());
 
         return true;
+    }
+
+    public function relatedJails() {
+        if ($this->jails == null) {
+            $jails = Jail::findAll();
+            $this->jails = array();
+
+            foreach ($jails as $jail)
+                foreach ($jail->associatedEpairs() as $n)
+                    if (!strcmp($this->getBridgeName(), $n->associatedBridge()->getBridgeName()))
+                        array_push($this->jails, $jail);
+        }
+
+        return $this->jails;
+    }
+
+    public function View() {
+        echo "[" . $this->getBridgeName() . "] Online => " . ($this->IsOnline() ? "True" : "False") . "\n";
+        echo "[" . $this->getBridgeName() . "] IP => " . $this->getBridgeIp() . "\n";
+        echo "[" . $this->getBridgeName() . "] Device => " . $this->getBridgeDevice() . "\n";
+
+        $jails = "";
+        foreach ($this->relatedJails() as $jail)
+            $jails .= ((strlen($jails) > 0) ? ", " : "") . $jail->getJailName();
+
+        echo "[" . $this->getBridgeName() . "] Assigned Jails => $jails\n";
+    }
+
+    public function Persist() {
+        $this->store();
+    }
+
+    public function Remove() {
+        if (count($this->relatedJails()) == 0)
+            $this->delete();
     }
 }

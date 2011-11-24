@@ -28,6 +28,8 @@ function jail_command() {
                 $jail = Jail::findByName($parsed[1]);
                 $jail->Remove();
             case "status":
+                $jail = Jail::findByName($parsed[1]);
+                $jail->View();
                 break;
             case "start":
                 $jail = Jail::findByName($parsed[1]);

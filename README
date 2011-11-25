@@ -22,3 +22,14 @@ Initial Setup
 
 4) Install the db schema:
     mysql [username/password/db] < schema.sql
+
+Using jailadmin
+===============
+
+jailadmin only supports an interactive interface right now.
+To start jailadmin, type:
+
+./jail.php
+
+You will be presented with a prompt. Type "help" at any time to
+see how to use jailadmin.

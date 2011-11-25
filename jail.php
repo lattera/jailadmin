@@ -25,6 +25,12 @@ function interactive() {
             case "bridge":
                 bridge_command();
                 break;
+            case "help":
+                echo "Available commands:\n";
+                echo "jail - Administer jails\n";
+                echo "bridge - Administer bridges\n";
+                echo "\nEnter \"back\" at any > prompt to go back to the previous menu\n";
+                break;
             default:
                 system($cmd);
                 break;

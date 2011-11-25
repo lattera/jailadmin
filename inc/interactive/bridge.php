@@ -23,6 +23,12 @@ function bridge_command() {
                 foreach ($bridges as $bridge)
                     $bridge->View();
                 break;
+            case "help":
+                echo "Available commands:\n";
+                echo "new - create new bridge\n";
+                echo "delete [bridge name] - delete a bridge\n";
+                echo "status [bridge name]- view the status of a bridge\n";
+                echo "viewall - view all bridges\n";
             case "back":
                 return;
             default:

@@ -43,6 +43,16 @@ function jail_command() {
                 foreach (Jail::findAll() as $jail)
                     $jail->View();
                 break;
+            case "help":
+                echo "Available commands:\n";
+                echo "config - configure jail\n";
+                echo "new - create a new jail\n";
+                echo "delete [jail name] - delete a jail\n";
+                echo "status [jail name] - view jail's status\n";
+                echo "start [jail name] - start a jail\n";
+                echo "stop [jail name] - stop a jail\n";
+                echo "viewall - view all configured jails\n";
+                break;
             default:
                 system($cmd);
                 break;
@@ -99,7 +109,9 @@ function config_jail($name="") {
                 $jail->View();
                 break;
             case "help":
-                echo "Available commands: back, commit, set, view, network\n";
+                echo "Available commands:\n";
+                echo "commit - commit changes to jail\n";
+                echo "network - configure jail's network\n";
                 echo "set - set jail parameters\n";
                 echo "      name\n";
                 echo "      path\n";
@@ -136,6 +148,13 @@ function config_network($jail) {
                 break;
             case "back":
                 return;
+            case "help":
+                echo "Available commands:\n";
+                echo "viewall - view all network settings\n";
+                echo "new - add new vnet device\n";
+                echo "delete - delete vnet device\n";
+                echo "[epair device name] - configure epair device\n";
+                break;
             default:
                 $config_epair = false;
                 foreach ($jail->associatedEpairs() as $n)
@@ -247,6 +266,14 @@ function config_epair($jail, $name) {
                 return;
             case "view":
                 $n->View();
+                break;
+            case "help":
+                echo "Available commands:\n";
+                echo "view - view current vnet device settings\n";
+                echo "set - set vnet device settings:\n";
+                echo "      ip - set the ip\n";
+                echo "      bridge - set the bridge\n";
+                echo "      device - set the device\n";
                 break;
             case "set":
                 if (count($parsed) != 3)

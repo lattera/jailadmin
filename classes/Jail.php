@@ -2,6 +2,7 @@
 
 class Jail extends fActiveRecord {
     private $network;
+    private $services;
 
     public static function findAll() {
         return Jail::prepData(fRecordSet::build(__CLASS__));
@@ -31,6 +32,9 @@ class Jail extends fActiveRecord {
 
         exec("jexec " . $this->getJailName() . " route add default " . $this->getDefaultRoute());
 
+        foreach ($this->services as $service)
+            exec("jexec " . $this->getJailName() . " " . $service->getServicePath() . " start");
+
         return true;
     }
 
@@ -51,9 +55,22 @@ class Jail extends fActiveRecord {
         return $this->network;
     }
 
+    public function associateServices($services=array()) {
+        if (count($services) == 0)
+            $this->services = Service::findByJailId($this->getJailId());
+        else
+            $this->services = $services;
+    }
+
+    public function associatedServices() {
+        return $this->services;
+    }
+
     protected static function prepData($jails, $single=false) {
-        foreach ($jails as $jail)
+        foreach ($jails as $jail) {
             $jail->associateEpairs();
+            $jail->associateServices();
+        }
 
         if ($single)
             return ($jails->count() == 0) ? false : $jails->getRecord(0);
@@ -81,6 +98,9 @@ class Jail extends fActiveRecord {
             echo "[" . $this->getJailName() . "][" . $n_name . "][" . $b_name . "] Name => " . $n->associatedBridge()->getBridgeName() . "\n";
             echo "[" . $this->getJailName() . "][" . $n_name . "][" . $b_name . "] IP => " . $n->associatedBridge()->getBridgeIp() . "\n";
         }
+
+        foreach ($this->services as $service)
+            echo "[" . $this->getJailName() . "] Service => " . $service->getServicePath() . "\n";
     }
 
     public function Persist() {

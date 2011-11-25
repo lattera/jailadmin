@@ -4,7 +4,11 @@ class Epair extends fActiveRecord {
     private $bridge;
 
     public static function findAll($jail_id) {
-        return Epair::prepData(fRecordSet::build(__CLASS__, array("jail_id=" => $jail_id)));
+        $epairs = array();
+        foreach (Epair::prepData(fRecordSet::build(__CLASS__, array("jail_id=" => $jail_id))) as $e)
+            array_push($epairs, $e);
+
+        return $epairs;
     }
 
     public static function findAllForUniqueCheck() {
@@ -51,7 +55,6 @@ class Epair extends fActiveRecord {
 
         exec("ifconfig " . $this->getEpairDevice() . "b vnet " . $jail->getJailName());
         exec("jexec " . $jail->getJailName() . " ifconfig " . $this->getEpairDevice() . "b " . $this->getIp());
-        exec("jexec " . $jail->getJailName() . " route add default " . $jail->getDefaultRoute());
     }
 
     public function BringOffline() {
@@ -65,6 +68,15 @@ class Epair extends fActiveRecord {
 
     public function associatedBridge() {
         return $this->bridge;
+    }
+
+    public function View() {
+        $b_name = $this->bridge->getBridgeDevice();
+
+        echo "[" . $this->getEpairDevice() . "] Online => " . ($this->IsOnline() ? "True" : "False") . "\n";
+        echo "[" . $this->getEpairDevice() . "] IP => " . $this->getIp() . "\n";
+        echo "[" . $this->getEpairDevice() . "][" . $b_name . "] Name => " . $this->bridge->getBridgeName() . "\n";
+        echo "[" . $this->getEpairDevice() . "][" . $b_name . "] IP => " . $this->bridge->getBridgeIp() . "\n";
     }
 
     public function Persist() {

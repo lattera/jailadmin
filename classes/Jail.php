@@ -29,6 +29,8 @@ class Jail extends fActiveRecord {
         foreach($this->network as $n)
             $n->BringGuestOnline($this);
 
+        exec("jexec " . $this->getJailName() . " route add default " . $this->getDefaultRoute());
+
         return true;
     }
 

@@ -57,14 +57,12 @@ function config_jail($name="") {
     }
 
     $jail = Jail::findByName($name);
-    while ($jail->count() == 0) {
+    while ($jail === false) {
         echo "Invalid jail.\n";
         echo "jail: ";
         $name = read_stdin();
         $jail = Jail::findByName($name);
     }
-
-    $jail = $jail->getRecord(0);
 
     do {
         echo "jail:$name> ";
@@ -76,6 +74,9 @@ function config_jail($name="") {
                 return;
             case "commit":
                 $jail->store();
+                break;
+            case "network":
+                config_network($jail);
                 break;
             case "set":
                 if (count($parsed) != 3)
@@ -103,6 +104,196 @@ function config_jail($name="") {
                 echo "      name\n";
                 echo "      path\n";
                 echo "      dataset\n";
+                break;
+            default:
+                system($cmd);
+                break;
+        }
+    } while (true);
+}
+
+function config_network($jail) {
+    $prompt = "jail:" . $jail->getJailName() . ":network> ";
+
+    do {
+        echo "$prompt";
+        $cmd = read_command();
+
+        if (strlen($cmd) == 0)
+            continue;
+
+        $parsed = explode(" ", $cmd);
+        switch ($parsed[0]) {
+            case "viewall":
+                foreach ($jail->associatedEpairs() as $n)
+                    $n->View();
+                break;
+            case "new":
+                new_epair($jail);
+                break;
+            case "delete":
+                delete_epair($jail, $parsed[1]);
+                break;
+            case "back":
+                return;
+            default:
+                $config_epair = false;
+                foreach ($jail->associatedEpairs() as $n)
+                    if (!strcmp($parsed[0], $n->getEpairDevice()))
+                        $config_epair = true;
+
+                if ($config_epair)
+                    config_epair($jail, $parsed[0]);
+                else
+                    system($cmd);
+                break;
+        }
+    } while(true);
+}
+
+function new_epair($jail) {
+    $jails = Jail::findAll();
+    $bridges = Bridge::findAll();
+
+    $valid_bridge = false;
+    $valid_device = true;
+    $valid_ip = true;
+
+    do {
+        echo "Bridge: ";
+        $bridge_name = read_stdin();
+
+        echo "Device: ";
+        $device = read_stdin();
+
+        echo "IP: ";
+        $ip = read_stdin();
+
+        foreach ($jails as $j) {
+            foreach ($j->associatedEpairs() as $n)
+                if (!strcmp($device, $n->getEpairDevice()))
+                    $valid_device = false;
+                if (!strcmp($ip, $n->getIp()))
+                    $valid_ip = false;
+        }
+
+        foreach ($bridges as $bridge) {
+            if (!strcmp($bridge_name, $bridge->getBridgeName()))
+                $valid_bridge = true;
+            if (!strcmp($ip, $bridge->getBridgeIp()))
+                $valid_ip = false;
+        }
+
+        if ($valid_bridge == false)
+            echo "Invalid bridge\n";
+        if ($valid_device == false)
+            echo "Device already taken\n";
+        if ($valid_ip == false)
+            echo "IP already taken\n";
+    } while ($valid_bridge == false || $valid_device == false || $valid_ip == false);
+
+    $bridge = null;
+    foreach ($bridges as $bridge)
+        if (!strcmp($bridge_name, $bridge->getBridgeName()))
+            break;
+
+    $n = new Epair;
+    $n->associateBridge($bridge);
+    $n->setIp($ip);
+    $n->setEpairDevice($device);
+    $n->setJailId($jail->getJailId());
+
+    $n->Persist();
+
+    $epairs = $jail->associatedEpairs();
+    array_push($epairs, $n);
+    $jail->associateEpairs($epairs);
+}
+
+function delete_epair($jail, $name) {
+    $newlist = array();
+    $epairs = $jail->associatedEpairs();
+
+    $e = null;
+    foreach ($epairs as $n) {
+        if (!strcmp($name, $n->getEpairDevice()))
+            $e = $n;
+        else
+            array_push($newlist, $n);
+    }
+
+    $e->Remove();
+    $jail->associateEpairs($newlist);
+}
+
+function config_epair($jail, $name) {
+    $n = null;
+
+    foreach ($jail->associatedEpairs() as $e)
+        if (!strcmp($name, $e->getEpairDevice()))
+            $n = $e;
+
+    $prompt = "jail:" . $jail->getJailName() . ":" . $name . "> ";
+    do {
+        echo "$prompt";
+        $cmd = read_command();
+
+        if (strlen($cmd) == 0)
+            continue;
+
+        $parsed = explode(" ", $cmd);
+        switch ($parsed[0]) {
+            case "back":
+                return;
+            case "view":
+                $n->View();
+                break;
+            case "set":
+                if (count($parsed) != 3)
+                    break;
+
+                switch ($parsed[1]) {
+                    case "ip":
+                        $jails = Jail::findAll();
+                        $bridges = Bridge::findAll();
+                        $available = true;
+                        foreach ($jails as $j)
+                            foreach ($j->associatedEpairs() as $e)
+                                if (strcmp($e->getEpairDevice(), $n->getEpairDevice()))
+                                    if (!strcmp($parsed[2], $e->getIp()))
+                                        $available = false;
+
+                        foreach ($bridges as $bridge)
+                            if (!strcmp($parsed[2], $bridge->getBridgeIp()))
+                                $available = false;
+
+                        if ($available == true) {
+                            $n->setIp($parsed[2]);
+                            echo "IP set to " . $parsed[2] . "\n";
+                        }
+                        else
+                            echo "IP already taken.\n";
+
+                        break;
+                    case "bridge":
+                        $bridges = Bridge::findAll();
+                        foreach ($bridges as $bridge)
+                            if (!strcmp($parsed[2], $bridge->getBridgeName()))
+                                $n->associateBridge($bridge);
+                        break;
+                    case "device":
+                        $jails = Jail::findAll();
+                        $available = true;
+                        foreach ($jails as $j)
+                            foreach ($j->associatedEpairs() as $e)
+                                if (!strcmp($parsed[2], $e->getEpairDevice()))
+                                    $available = false;
+
+                        if ($available)
+                            $n->setEpairDevice($parsed[2]);
+                        break;
+                }
+
                 break;
             default:
                 system($cmd);

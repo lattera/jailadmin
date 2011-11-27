@@ -61,10 +61,11 @@ function new_bridge() {
                 echo "Device already taken\n";
                 $valid = false;
             }
-            if (!strcmp($ip, $bridge->getBridgeIp())) {
-                echo "IP already taken\n";
-                $valid = false;
-            }
+        }
+
+        if (Epair::IPAvailable($ip) == false) {
+            echo "IP already taken\n";
+            $valid = false;
         }
 
         if ($valid == false)

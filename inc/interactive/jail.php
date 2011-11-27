@@ -178,6 +178,7 @@ function new_epair($jail) {
     $valid_device = true;
     $valid_ip = true;
 
+    $bridge = null;
     do {
         echo "Bridge: ";
         $bridge_name = read_stdin();
@@ -188,20 +189,10 @@ function new_epair($jail) {
         echo "IP: ";
         $ip = read_stdin();
 
-        foreach ($jails as $j) {
-            foreach ($j->associatedEpairs() as $n)
-                if (!strcmp($device, $n->getEpairDevice()))
-                    $valid_device = false;
-                if (!strcmp($ip, $n->getIp()))
-                    $valid_ip = false;
-        }
-
-        foreach ($bridges as $bridge) {
-            if (!strcmp($bridge_name, $bridge->getBridgeName()))
-                $valid_bridge = true;
-            if (!strcmp($ip, $bridge->getBridgeIp()))
-                $valid_ip = false;
-        }
+        $bridge = Bridge::findByName($bridge_name);
+        $valid_bridge = ($bridge !== false);
+        $valid_device = Epair::EpairAvailable($device);
+        $valid_ip = Epair::IPAvailable($ip);
 
         if ($valid_bridge == false)
             echo "Invalid bridge\n";
@@ -210,11 +201,6 @@ function new_epair($jail) {
         if ($valid_ip == false)
             echo "IP already taken\n";
     } while ($valid_bridge == false || $valid_device == false || $valid_ip == false);
-
-    $bridge = null;
-    foreach ($bridges as $bridge)
-        if (!strcmp($bridge_name, $bridge->getBridgeName()))
-            break;
 
     $n = new Epair;
     $n->associateBridge($bridge);
@@ -303,21 +289,17 @@ function config_epair($jail, $name) {
 
                         break;
                     case "bridge":
-                        $bridges = Bridge::findAll();
-                        foreach ($bridges as $bridge)
-                            if (!strcmp($parsed[2], $bridge->getBridgeName()))
-                                $n->associateBridge($bridge);
+                        $bridge = Bridge::findByName();
+                        if ($bridge === false)
+                            echo "Invalid bridge\n";
+                        else
+                            $n->associateBridge($bridge);
                         break;
                     case "device":
-                        $jails = Jail::findAll();
-                        $available = true;
-                        foreach ($jails as $j)
-                            foreach ($j->associatedEpairs() as $e)
-                                if (!strcmp($parsed[2], $e->getEpairDevice()))
-                                    $available = false;
-
-                        if ($available)
+                        if (Epair::EpairAvailable($parsed[2]))
                             $n->setEpairDevice($parsed[2]);
+                        else
+                            echo "Epair device already taken\n";
                         break;
                 }
 
@@ -373,26 +355,12 @@ function new_jail() {
             continue;
         }
 
-        $validip = true;
-        $validepair = true;
-        foreach ($epairs as $epair) {
-            if (!strcmp($combo[1], $epair->getEpairDevice()))
-                $validepair = false;
-            if (!strcmp($combo[2], $epair->getIp()))
-                $validip = false;
-        }
-
-        if ($validip == true)
-            foreach ($bridges as $bridge)
-                if (!strcmp($combo[2], $bridge->getIp()))
-                    $validip = false;
-
-        if ($validip == false) {
+        if (Epair::IPAvailable($combo[2]) == false) {
             echo "IP already taken: " . $combo[2] . "\n";
             continue;
         }
 
-        if ($validepair == false) {
+        if (Epair::EpairAvailable($combo[1]) == false) {
             echo "Device already taken: " . $combo[1] . "\n";
             continue;
         }

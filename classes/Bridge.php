@@ -72,4 +72,14 @@ class Bridge extends fActiveRecord {
         if (count($this->relatedJails()) == 0)
             $this->delete();
     }
+
+    public static function BridgeAvailable($device) {
+        $bridges = Bridge::findAll();
+
+        foreach ($bridges as $bridge)
+            if (!strcmp($device, $bridge->getBridgeDevice()))
+                return false;
+
+        return true;
+    }
 }

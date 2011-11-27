@@ -90,6 +90,35 @@ class Epair extends fActiveRecord {
 
         $this->delete();
     }
+
+    /* Static functions for lookups */
+    public static function IPAvailable($ip) {
+        $jails = Jail::findAll();
+        $bridges = Bridge::findAll();
+
+        foreach ($jails as $j)
+            foreach ($j->associatedEpairs() as $n)
+                if (!strcmp($ip, $n->getIp()))
+                    return false;
+
+        foreach ($bridges as $bridge)
+            if (!strcmp($ip, $bridge->getBridgeIp()))
+                return false;
+
+        return true;
+    }
+
+    public static function EpairAvailable($epair) {
+        $valid_epair = true;
+        $jails = Jail::findAll();
+
+        foreach ($jails as $jail)
+            foreach ($jail->associatedEpairs() as $n)
+                if (!strcmp($epair, $n->getEpairDevice()))
+                    return false;
+
+        return true;
+    }
 }
 
 ?>

@@ -38,27 +38,39 @@ function interactive() {
     } while(true);
 }
 
-function batch() {
-
-}
-
-function main($args) {
-    if (count($args) < 2) {
-        echo "USAGE: " . $args[0] . " [i] [b [commands]]\n";
+function batch($args) {
+    if (count($args) < 3) {
+        echo "USAGE: " . $args[0] . "[command] {arguments}\n";
+        echo "Available commands:\n";
+        echo "start [jail]\n";
+        echo "stop [jail]\n";
         return;
     }
 
     switch ($args[1]) {
-        case "i":
-            interactive();
+        case "start":
+            $jail = Jail::findByName($args[2]);
+            if ($jail !== false)
+                $jail->Start();
             break;
-        case "b":
-            batch();
+        case "stop":
+            $jail = Jail::findByName($args[2]);
+            if ($jail !== false)
+                $jail->Stop();
             break;
         default:
-            echo "USAGE: " . $args[0] . " [i] [b [commands]]\n";
+            echo "Unkown command: " . $args[1] . "\n";
             break;
     }
+}
+
+function main($args) {
+    if (count($args) == 1) {
+        interactive();
+        return;
+    }
+
+    batch($args);
 }
 
 main($argv);

@@ -118,6 +118,9 @@ class Jail extends fActiveRecord {
         foreach ($this->network as $n)
             $n->Remove();
 
+        foreach ($this->services as $service)
+            $service->Remove();
+
         exec("zfs destroy -r " . $this->getDataset());
         $this->delete();
     }

@@ -8,6 +8,10 @@ class Service extends fActiveRecord {
 
         return $services;
     }
+
+    public function Remove() {
+        $this->delete();
+    }
 }
 
 ?>

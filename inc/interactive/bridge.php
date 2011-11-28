@@ -29,6 +29,7 @@ function bridge_command() {
                 echo "delete [bridge name] - delete a bridge\n";
                 echo "status [bridge name]- view the status of a bridge\n";
                 echo "viewall - view all bridges\n";
+                break;
             case "back":
                 return;
             default:

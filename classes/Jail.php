@@ -109,6 +109,11 @@ class Jail extends fActiveRecord {
             $n->setJailId($this->getJailId());
             $n->Persist();
         }
+
+        foreach ($this->services as $service) {
+            $service->setJailId($this->getJailId());
+            $service->Persist();
+        }
     }
 
     public function Remove() {

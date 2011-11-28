@@ -27,6 +27,7 @@ function jail_command() {
             case "delete":
                 $jail = Jail::findByName($parsed[1]);
                 $jail->Remove();
+                break;;
             case "status":
                 $jail = Jail::findByName($parsed[1]);
                 $jail->View();
@@ -376,8 +377,10 @@ function new_jail() {
     do {
         echo "Service (enter blank line when finished): ";
         $service = read_stdin();
+        $service_obj = new Service;
+        $service_obj->setServicePath($service);
         if (strlen($service) > 0)
-            array_push($services, $service);
+            array_push($services, $service_obj);
     } while (strlen($service) > 0);
 
     $networks = array();
@@ -403,6 +406,7 @@ function new_jail() {
     $j->setPath($path);
     $j->setDataset($dataset);
     $j->setDefaultRoute($route);
+    $j->associateServices($services);
 
     $j->Persist();
 
@@ -410,8 +414,10 @@ function new_jail() {
 
     $fp = fopen($path . "/etc/ssh/sshd_config", "a");
     if ($fp !== false) {
-        fwrite($fp, "ListenAddress $ip\n");
-        fclose($fp);
+        foreach ($ips as $ip) {
+            fwrite($fp, "ListenAddress " . $ip[2] . "\n");
+            fclose($fp);
+        }
     }
 
     $fp = fopen($path . "/etc/rc.conf", "a");

@@ -12,6 +12,10 @@ class Service extends fActiveRecord {
     public function Remove() {
         $this->delete();
     }
+
+    public function Persist() {
+        $this->store();
+    }
 }
 
 ?>

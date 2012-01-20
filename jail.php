@@ -44,6 +44,8 @@ function batch($args) {
         echo "Available commands:\n";
         echo "start [jail]\n";
         echo "stop [jail]\n";
+        echo "upgrade [jail]\n";
+        echo "snapshot [jail]\n";
         return;
     }
 
@@ -57,6 +59,16 @@ function batch($args) {
             $jail = Jail::findByName($args[2]);
             if ($jail !== false)
                 $jail->Stop();
+            break;
+        case "upgrade":
+            $jail = Jail::findByName($args[2]);
+            if ($jail !== false)
+                $jail->UpgradeWorld();
+            break;
+        case "snapshot":
+            $jail = Jail::findByName($args[2]);
+            if ($jail !== false)
+                $jail->Snapshot();
             break;
         default:
             echo "Unkown command: " . $args[1] . "\n";

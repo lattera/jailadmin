@@ -103,6 +103,30 @@ class Jail extends fActiveRecord {
             echo "[" . $this->getJailName() . "] Service => " . $service->getServicePath() . "\n";
     }
 
+    public function Snapshot($snapname='') {
+        $snapshot = $snapname;
+
+        if (strlen($snapname) == 0)
+            $snapshot = strftime("%F_%T");
+
+        exec("zfs snapshot -r " . $this->getDataset() . "@" . $snapshot);
+    }
+
+    public function UpgradeWorld() {
+        $resume = false;
+        if ($this->IsOnline()) {
+            $resume = true;
+            $this->Stop();
+        }
+
+        $this->Snapshot();
+
+        system("cd /usr/src; make installworld DESTDIR=" . $this->getPath());
+
+        if ($resume)
+            $this->Start();
+    }
+
     public function Persist() {
         $this->setJailId($this->store()->getJailId());
         foreach ($this->network as $n) {
